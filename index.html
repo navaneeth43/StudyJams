@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Contributors</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.5;
+    }
+    h1 {
+      margin-bottom: 0.25rem;
+    }
+    #contributors ul {
+      padding-left: 1.25rem;
+    }
+    .note {
+      color: #555;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Contributors</h1>
+  <p class="note">
+    This page reads <code>contributors.txt</code> from the same directory. 
+    Fork/clone the repo, add your name to <code>contributors.txt</code>, commit, and push.
+  </p>
+  <div id="contributors">Loading contributors…</div>
+
+  <script>
+    async function loadContributors() {
+      const container = document.getElementById('contributors');
+      try {
+        const res = await fetch('contributors.txt', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Fetch failed');
+        const text = await res.text();
+        const names = text
+          .split('\n')
+          .map(n => n.trim())
+          .filter((v, i, a) => v && a.indexOf(v) === i) // remove empty + dedupe
+          .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+        if (names.length === 0) {
+          container.textContent = "No contributors yet. Add your name to contributors.txt and commit.";
+          return;
+        }
+
+        const ul = document.createElement('ul');
+        names.forEach(name => {
+          const li = document.createElement('li');
+          li.textContent = name;
+          ul.appendChild(li);
+        });
+        container.innerHTML = ''; // clear loading...
+        container.appendChild(ul);
+      } catch (err) {
+        container.innerHTML = `
+          <p>Could not load <code>contributors.txt</code>. Ensure the file exists next to this HTML and is served (e.g., via GitHub Pages or a static server).</p>
+        `;
+      }
+    }
+
+    loadContributors();
+    // optional: auto-refresh every 30 seconds for live updates
+    setInterval(loadContributors, 30000);
+  </script>
+</body>
+</html>
